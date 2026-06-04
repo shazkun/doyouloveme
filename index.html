@@ -6,18 +6,16 @@
   <title>Do you love me?</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
     *{box-sizing:border-box;margin:0;padding:0}
     body{background:#0a0010;color:#ff2d78;font-family:'Share Tech Mono',monospace;}
-
+    
     #wrap{
       min-height:100vh;background:#0a0010;
       display:flex;flex-direction:column;align-items:center;justify-content:center;
       position:relative;overflow:hidden;padding:1.5rem 1rem;
     }
-
     #mc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
-
+    
     #bg-container {
       display: none;
       position: absolute;
@@ -28,7 +26,7 @@
       opacity: 0;
       transition: opacity 2.8s ease-in;
     }
-
+    
     .card{
       position:relative;z-index:4;
       display:flex;flex-direction:column;align-items:center;gap:1rem;
@@ -37,10 +35,9 @@
       background:rgba(10,0,20,0.92);
       box-shadow:0 0 40px rgba(255,45,120,0.2);
     }
-
     .ttl{color:#ff2d78;font-size:26px;letter-spacing:6px;text-transform:uppercase}
     .sub{color:#ff6fa3;font-size:13px;letter-spacing:2px;opacity:.8}
-
+    
     #heart-container {
       display: none;
       position: relative;
@@ -49,7 +46,6 @@
       max-width: 720px;
       margin-top: 20px;
     }
-
     #text-heart {
       width: 100%;
       height: auto;
@@ -65,12 +61,12 @@
     <div class="card" id="card">
       <div class="ttl">DO YOU LOVE ME?</div>
       <div class="sub">// choose your path, neo</div>
-
+      
       <div style="position:relative;width:100%;height:62px;margin-top:1rem">
         <button id="btn-yes" style="background:transparent;border:2px solid #ff2d78;color:#ff2d78;font-family:'Share Tech Mono',monospace;font-size:16px;letter-spacing:4px;padding:15px 40px;border-radius:6px;cursor:pointer;text-transform:uppercase;transition:all .2s;position:absolute;left:0;top:0;">[ YES ]</button>
         <button id="btn-no" style="background:transparent;border:2px solid #ff2d7866;color:#ff2d78;font-family:'Share Tech Mono',monospace;font-size:16px;letter-spacing:4px;padding:15px 40px;border-radius:6px;cursor:none;text-transform:uppercase;user-select:none;pointer-events:none;position:absolute;top:0;">[ NO ]</button>
       </div>
-
+      
       <div id="cl" style="color:#ff6fa3;font-size:13px;letter-spacing:2px;min-height:22px;margin-top:12px">&gt; waiting for input...</div>
     </div>
 
@@ -100,7 +96,6 @@
       mCtx.fillStyle = 'rgba(10,0,20,0.18)';
       mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
       mCtx.font = '14px Share Tech Mono';
-
       for (let i = 0; i < drops.length; i++) {
         const text = '01ハニフムヤユ♥♡◆▲'[Math.floor(Math.random()*14)];
         mCtx.fillStyle = Math.random() > 0.85 ? '#ff2d78' : '#ff2d7844';
@@ -110,10 +105,10 @@
       }
     }
 
+    // Generate Heart
     function generateTextHeart() {
       const svg = document.getElementById('text-heart');
       svg.innerHTML = '';
-
       const phrase = "i love elysia   ";
       let charIndex = 0;
       const step = 7.2;
@@ -152,50 +147,65 @@
 
     const audio = document.getElementById('love-audio');
     const btnYes = document.getElementById('btn-yes');
+    const btnNo = document.getElementById('btn-no');
     const card = document.getElementById('card');
     const heartContainer = document.getElementById('heart-container');
     const bgContainer = document.getElementById('bg-container');
 
+    // YES Button
     btnYes.addEventListener('click', () => {
       card.style.display = 'none';
       heartContainer.style.display = 'block';
       bgContainer.style.display = 'block';
 
       audio.play().catch(() => {});
-
-      // Change this to your image URL
       bgContainer.style.backgroundImage = "url('assets/bg.png')";
 
-      setTimeout(() => {
-        bgContainer.style.opacity = "0.35";
-      }, 100);
-
+      setTimeout(() => bgContainer.style.opacity = "0.35", 100);
       generateTextHeart();
     });
 
-    // No button logic
+    // NO Button - Moves everywhere when mouse is near
     let noAttempts = 0;
-    function moveNo() {
+
+    function moveNoRandom() {
       noAttempts++;
-      const btnNo = document.getElementById('btn-no');
-      btnNo.style.left = (40 + Math.random() * 200) + 'px';
-      btnNo.style.top = (12 + Math.random() * 55) + 'px';
+      const maxX = window.innerWidth - 180;
+      const maxY = window.innerHeight - 100;
+      
+      const newX = Math.random() * maxX;
+      const newY = Math.random() * maxY;
+      
+      btnNo.style.position = 'fixed';
+      btnNo.style.left = newX + 'px';
+      btnNo.style.top = newY + 'px';
     }
 
-    document.getElementById('btn-no').addEventListener('click', moveNo);
+    // Mouse tracking - continuous evasion
     document.addEventListener('mousemove', (e) => {
-      if (noAttempts < 5) {
-        const r = document.getElementById('btn-no').getBoundingClientRect();
-        if (Math.hypot(e.clientX - (r.left + r.width/2), e.clientY - (r.top + r.height/2)) < 100) moveNo();
+      if (!btnNo || card.style.display === 'none') return;
+      
+      const rect = btnNo.getBoundingClientRect();
+      const distance = Math.hypot(
+        e.clientX - (rect.left + rect.width/2),
+        e.clientY - (rect.top + rect.height/2)
+      );
+
+      if (distance < 120) {   // Mouse is close → move away
+        moveNoRandom();
       }
     });
 
+    // Click on NO also moves it
+    btnNo.addEventListener('click', moveNoRandom);
+
+    // Init
     window.addEventListener('resize', resizeMatrix);
     resizeMatrix();
     setInterval(drawMatrix, 45);
 
     setTimeout(() => {
-      document.getElementById('btn-no').style.left = (btnYes.offsetWidth + 45) + 'px';
+      btnNo.style.left = (btnYes.offsetWidth + 45) + 'px';
     }, 200);
   </script>
 </body>
