@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Do you love me?</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#0a0010;color:#ff2d78;font-family:'Share Tech Mono',monospace;}
+
+    #wrap{
+      min-height:100vh;background:#0a0010;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      position:relative;overflow:hidden;padding:1.5rem 1rem;
+    }
+
+    #mc{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+
+    #bg-container {
+      display: none;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+      background: #1a0033 center/cover no-repeat;
+      opacity: 0;
+      transition: opacity 2.8s ease-in;
+    }
+
+    .card{
+      position:relative;z-index:4;
+      display:flex;flex-direction:column;align-items:center;gap:1rem;
+      padding:2rem;width:100%;max-width:620px;
+      border:1px solid #ff2d7844;border-radius:12px;
+      background:rgba(10,0,20,0.92);
+      box-shadow:0 0 40px rgba(255,45,120,0.2);
+    }
+
+    .ttl{color:#ff2d78;font-size:26px;letter-spacing:6px;text-transform:uppercase}
+    .sub{color:#ff6fa3;font-size:13px;letter-spacing:2px;opacity:.8}
+
+    #heart-container {
+      display: none;
+      position: relative;
+      z-index: 3;
+      width: 100%;
+      max-width: 720px;
+      margin-top: 20px;
+    }
+
+    #text-heart {
+      width: 100%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <canvas id="mc"></canvas>
+    <div id="bg-container"></div>
+
+    <!-- Menu -->
+    <div class="card" id="card">
+      <div class="ttl">DO YOU LOVE ME?</div>
+      <div class="sub">// choose your path, neo</div>
+
+      <div style="position:relative;width:100%;height:62px;margin-top:1rem">
+        <button id="btn-yes" style="background:transparent;border:2px solid #ff2d78;color:#ff2d78;font-family:'Share Tech Mono',monospace;font-size:16px;letter-spacing:4px;padding:15px 40px;border-radius:6px;cursor:pointer;text-transform:uppercase;transition:all .2s;position:absolute;left:0;top:0;">[ YES ]</button>
+        <button id="btn-no" style="background:transparent;border:2px solid #ff2d7866;color:#ff2d78;font-family:'Share Tech Mono',monospace;font-size:16px;letter-spacing:4px;padding:15px 40px;border-radius:6px;cursor:none;text-transform:uppercase;user-select:none;pointer-events:none;position:absolute;top:0;">[ NO ]</button>
+      </div>
+
+      <div id="cl" style="color:#ff6fa3;font-size:13px;letter-spacing:2px;min-height:22px;margin-top:12px">&gt; waiting for input...</div>
+    </div>
+
+    <!-- Big Heart -->
+    <div id="heart-container">
+      <svg id="text-heart" viewBox="0 0 720 620" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+  <audio id="love-audio" loop>
+    <source src="assets/audio.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // Matrix Rain
+    const mCanvas = document.getElementById('mc');
+    const mCtx = mCanvas.getContext('2d');
+    let drops = [];
+
+    function resizeMatrix() {
+      mCanvas.width = window.innerWidth;
+      mCanvas.height = window.innerHeight;
+      drops = Array(Math.floor(mCanvas.width / 16)).fill(1);
+    }
+
+    function drawMatrix() {
+      mCtx.fillStyle = 'rgba(10,0,20,0.18)';
+      mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
+      mCtx.font = '14px Share Tech Mono';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = '01ハニフムヤユ♥♡◆▲'[Math.floor(Math.random()*14)];
+        mCtx.fillStyle = Math.random() > 0.85 ? '#ff2d78' : '#ff2d7844';
+        mCtx.fillText(text, i * 16, drops[i] * 16);
+        if (drops[i] * 16 > mCanvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
+    }
+
+    function generateTextHeart() {
+      const svg = document.getElementById('text-heart');
+      svg.innerHTML = '';
+
+      const phrase = "i love elysia   ";
+      let charIndex = 0;
+      const step = 7.2;
+
+      for (let y = 70; y < 550; y += step) {
+        const xOffset = (Math.floor(y / step) % 2) * 4;
+        for (let x = 80 + xOffset; x < 640; x += step) {
+          const nx = (x - 360) / 135;
+          const ny = -(y - 290) / 135;
+          if (Math.pow(nx*nx + ny*ny - 1, 3) - nx*nx * ny*ny*ny <= 0) {
+            const ch = phrase[charIndex % phrase.length];
+            const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            textEl.setAttribute("x", x);
+            textEl.setAttribute("y", y);
+            textEl.setAttribute("fill", "#ff2d78");
+            textEl.setAttribute("font-family", "Share Tech Mono");
+            textEl.setAttribute("font-size", "15");
+            textEl.setAttribute("font-weight", "bold");
+            textEl.setAttribute("opacity", "0");
+            textEl.textContent = ch;
+            svg.appendChild(textEl);
+            charIndex++;
+          }
+        }
+      }
+
+      let i = 0;
+      const texts = svg.querySelectorAll('text');
+      const spawnInterval = setInterval(() => {
+        if (i < texts.length) {
+          texts[i].setAttribute("opacity", "0.95");
+          i++;
+        } else clearInterval(spawnInterval);
+      }, 5);
+    }
+
+    const audio = document.getElementById('love-audio');
+    const btnYes = document.getElementById('btn-yes');
+    const card = document.getElementById('card');
+    const heartContainer = document.getElementById('heart-container');
+    const bgContainer = document.getElementById('bg-container');
+
+    btnYes.addEventListener('click', () => {
+      card.style.display = 'none';
+      heartContainer.style.display = 'block';
+      bgContainer.style.display = 'block';
+
+      audio.play().catch(() => {});
+
+      // Change this to your image URL
+      bgContainer.style.backgroundImage = "url('assets/bg.png')";
+
+      setTimeout(() => {
+        bgContainer.style.opacity = "0.35";
+      }, 100);
+
+      generateTextHeart();
+    });
+
+    // No button logic
+    let noAttempts = 0;
+    function moveNo() {
+      noAttempts++;
+      const btnNo = document.getElementById('btn-no');
+      btnNo.style.left = (40 + Math.random() * 200) + 'px';
+      btnNo.style.top = (12 + Math.random() * 55) + 'px';
+    }
+
+    document.getElementById('btn-no').addEventListener('click', moveNo);
+    document.addEventListener('mousemove', (e) => {
+      if (noAttempts < 5) {
+        const r = document.getElementById('btn-no').getBoundingClientRect();
+        if (Math.hypot(e.clientX - (r.left + r.width/2), e.clientY - (r.top + r.height/2)) < 100) moveNo();
+      }
+    });
+
+    window.addEventListener('resize', resizeMatrix);
+    resizeMatrix();
+    setInterval(drawMatrix, 45);
+
+    setTimeout(() => {
+      document.getElementById('btn-no').style.left = (btnYes.offsetWidth + 45) + 'px';
+    }, 200);
+  </script>
+</body>
+</html>
